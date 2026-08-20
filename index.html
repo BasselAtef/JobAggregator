@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Job Search Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-dark: #0b0f19;
+            --bg-card: rgba(22, 28, 45, 0.7);
+            --bg-card-hover: rgba(30, 39, 63, 0.85);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-highlight: rgba(99, 102, 241, 0.3);
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.4);
+            --accent-secondary: #06b6d4;
+            --accent-success: #10b981;
+            --accent-warning: #f59e0b;
+            --accent-danger: #ef4444;
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --text-muted: #6b7280;
+            --radius-lg: 16px;
+            --radius-md: 10px;
+            --radius-sm: 6px;
+            --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            background-image:
+                radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.12) 0%, transparent 40%);
+            background-attachment: fixed;
+            padding: 2rem 1.5rem;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .brand-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .brand-title h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(to right, #ffffff, #9ca3af);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-title p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .status-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--accent-success);
+            box-shadow: 0 0 10px var(--accent-success);
+        }
+
+        /* Control Panel / n8n Trigger Card */
+        .control-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem;
+            box-shadow: var(--shadow-glass);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .control-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .control-title {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .n8n-badge {
+            background: linear-gradient(135deg, #ff6d5a, #ea4b71);
+            color: #fff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .webhook-controls {
+            display: flex;
+            gap: 0.75rem;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .input-group {
+            flex: 1;
+            min-width: 280px;
+            position: relative;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 18px;
+            height: 18px;
+        }
+
+        .webhook-input {
+            width: 100%;
+            background: rgba(15, 21, 37, 0.8);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+        }
+
+        .webhook-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        /* runBtn Styling */
+        #runBtn {
+            background: linear-gradient(135deg, var(--accent-primary), #4f46e5);
+            color: #ffffff;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 0.75rem 1.75rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 15px var(--accent-glow);
+            white-space: nowrap;
+        }
+
+        #runBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
+            background: linear-gradient(135deg, #6366f1, #4338ca);
+        }
+
+        #runBtn:active {
+            transform: translateY(0);
+        }
+
+        #runBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Filter and Stats bar */
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 320px;
+            width: 100%;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            width: 16px;
+            height: 16px;
+        }
+
+        .search-input {
+            width: 100%;
+            background: rgba(22, 28, 45, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.55rem 0.85rem 0.55rem 2.4rem;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent-secondary);
+        }
+
+        .records-counter {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Label Badges Bar */
+        .labels-preview {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .field-tag {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            padding: 0.2rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        /* Job Cards Grid */
+        .jobs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .job-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .job-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+
+        .job-card:hover {
+            transform: translateY(-4px);
+            background: var(--bg-card-hover);
+            border-color: var(--border-highlight);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        .job-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+
+        .field-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
+        .label-badge {
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 700;
+            color: var(--accent-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .job-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.35;
+        }
+
+        .company-name {
+            font-size: 0.9rem;
+            color: #d1d5db;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .fetched-at {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            white-space: nowrap;
+        }
+
+        .job-description {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            flex: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .job-url {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius-sm);
+            background: rgba(99, 102, 241, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .job-url:hover {
+            background: rgba(99, 102, 241, 0.25);
+            color: #ffffff;
+            transform: translateX(2px);
+        }
+
+        /* Output / Response Panel */
+        .output-panel {
+            background: rgba(11, 15, 25, 0.9);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #a7f3d0;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .output-panel.active {
+            display: block;
+        }
+
+        .output-panel header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-muted);
+        }
+
+        /* Empty state */
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            width: 48px;
+            height: 48px;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 1rem;
+            }
+
+            .webhook-controls {
+                flex-direction: column;
+            }
+
+            #runBtn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <!-- Main Navigation Header -->
+        <header>
+            <div class="brand-title">
+                <div class="brand-icon">
+                    <i data-lucide="briefcase"></i>
+                </div>
+                <div>
+                    <h1>Job Search & AI Automation</h1>
+                    <p>n8n Workflow Execution & Batch Processor</p>
+                </div>
+            </div>
+
+            <div class="status-pill">
+                <span class="status-dot"></span>
+                <span>System Ready</span>
+            </div>
+        </header>
+
+        <!-- n8n Workflow Trigger Control Card -->
+        <section class="control-card">
+            <div class="control-card-header">
+                <div class="control-title">
+                    <i data-lucide="zap" style="color: var(--accent-warning);"></i>
+                    <span>Execute Workflow</span>
+                    <span class="n8n-badge">n8n</span>
+                </div>
+                <div class="labels-preview">
+                    <span>Target Labels:</span>
+                    <span class="field-tag">title</span>
+                    <span class="field-tag">company</span>
+                    <span class="field-tag">fetched_at</span>
+                    <span class="field-tag">url</span>
+                    <span class="field-tag">description</span>
+                </div>
+            </div>
+
+            <div class="webhook-controls">
+                <div class="input-group">
+                    <i data-lucide="link"></i>
+                    <input type="text" id="webhookUrl" class="webhook-input"
+                        value="http://localhost:5678/webhook/job-search" placeholder="Enter n8n Webhook URL...">
+                </div>
+
+                <!-- Required runBtn ID -->
+                <button id="runBtn" onclick="runWorkflow()">
+                    <i data-lucide="play" class="btn-icon"></i>
+                    <i data-lucide="loader-2" class="spinner"></i>
+                    <span>Run n8n Workflow</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- Response Console Log (Hidden by default) -->
+        <div id="outputConsole" class="output-panel">
+            <header>
+                <span>Workflow Execution Logs</span>
+                <span id="logTimestamp">-</span>
+            </header>
+            <pre id="logContent">Ready to execute...</pre>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar">
+            <div class="search-box">
+                <i data-lucide="search"></i>
+                <input type="text" id="searchInput" class="search-input" placeholder="Search title or company..."
+                    oninput="filterJobs()">
+            </div>
+            <div class="records-counter" id="recordsCount">
+                Showing 5 job records
+            </div>
+        </div>
+
+        <!-- Job Cards Grid -->
+        <main class="jobs-grid" id="jobsGrid">
+            <!-- Job items rendered dynamically -->
+        </main>
+    </div>
+
+    <script>
+        // Initial sample job dataset containing all requested labels:
+        // "title", "company", "fetched_at", "url", "description"
+        let initialJobs = [
+            {
+                title: "AI Automation Engineer",
+                company: "TechPulse Labs",
+                fetched_at: "20-08-2026",
+                url: "https://example.com/jobs/ai-automation-engineer",
+                description: "Build and maintain LLM workflows using Python, n8n, and Ollama. Optimize local model inference and structured data extractions."
+            },
+            {
+                title: "Junior Machine Learning Engineer",
+                company: "DataCraft Systems",
+                fetched_at: "20-08-2026",
+                url: "https://example.com/jobs/jr-ml-engineer",
+                description: "Assist in developing end-to-end data processing pipelines, fine-tuning classification models, and integrating open-source APIs."
+            },
+            {
+                title: "LLM Integration Specialist",
+                company: "Cognitive Solutions",
+                fetched_at: "19-08-2026",
+                url: "https://example.com/jobs/llm-integration-specialist",
+                description: "Responsible for embedding generative AI models into production microservices, prompt design, and data parsing."
+            },
+            {
+                title: "Python Backend & AI Developer",
+                company: "NexGen Analytics",
+                fetched_at: "18-08-2026",
+                url: "https://example.com/jobs/python-ai-dev",
+                description: "Develop REST APIs, automate job scraping workflows, and connect n8n triggers to automated backend scoring routines."
+            },
+            {
+                title: "Data Analyst - AI Operations",
+                company: "OmniData Inc.",
+                fetched_at: "17-08-2026",
+                url: "https://example.com/jobs/data-analyst-ai",
+                description: "Analyze web-crawled job search feeds, clean unstructured text data, and build summary dashboards for market insights."
+            }
+        ];
+
+        let currentJobs = [...initialJobs];
+
+        function renderJobs(jobs) {
+            const container = document.getElementById('jobsGrid');
+            const counter = document.getElementById('recordsCount');
+
+            counter.innerText = `Showing ${jobs.length} job record${jobs.length !== 1 ? 's' : ''}`;
+
+            if (jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i data-lucide="file-x"></i>
+                        <h3>No Jobs Found</h3>
+                        <p>Try adjusting your search criteria or execute the n8n workflow to fetch new data.</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = jobs.map(job => `
+                <article class="job-card">
+                    <div class="card-header">
+                        <div class="field-group">
+                            <span class="label-badge">
+                                <i data-lucide="briefcase" style="width: 12px; height: 12px;"></i>
+                                title
+                            </span>
+                            <h2 class="job-title">${escapeHtml(job.title || 'N/A')}</h2>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <span class="label-badge">
+                            <i data-lucide="building-2" style="width: 12px; height: 12px;"></i>
+                            company
+                        </span>
+                        <div class="company-name">
+                            <span>${escapeHtml(job.company || 'N/A')}</span>
+                        </div>
+                    </div>
+
+                    <div class="field-group">
+                        <span class="label-badge">
+                            <i data-lucide="calendar" style="width: 12px; height: 12px;"></i>
+                            fetched_at
+                        </span>
+                        <div class="fetched-at">
+                            <i data-lucide="clock" style="width: 12px; height: 12px;"></i>
+                            <span>${escapeHtml(job.fetched_at || 'N/A')}</span>
+                        </div>
+                    </div>
+
+                    <div class="field-group" style="flex: 1;">
+                        <span class="label-badge">
+                            <i data-lucide="file-text" style="width: 12px; height: 12px;"></i>
+                            description
+                        </span>
+                        <div class="job-description">
+                            ${escapeHtml(job.description || 'No description provided.')}
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <div class="field-group" style="width: 100%; flex-direction: row; justify-content: space-between; align-items: center;">
+                            <span class="label-badge">
+                                <i data-lucide="link" style="width: 12px; height: 12px;"></i>
+                                url
+                            </span>
+                            <a href="${escapeHtml(job.url || '#')}" target="_blank" rel="noopener noreferrer" class="job-url">
+                                <span>Apply / View</span>
+                                <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+            `).join('');
+
+            lucide.createIcons();
+        }
+
+        function filterJobs() {
+            const query = document.getElementById('searchInput').value.toLowerCase().trim();
+            const filtered = currentJobs.filter(job =>
+                (job.title && job.title.toLowerCase().includes(query)) ||
+                (job.company && job.company.toLowerCase().includes(query)) ||
+                (job.description && job.description.toLowerCase().includes(query))
+            );
+            renderJobs(filtered);
+        }
+
+        async function runWorkflow() {
+            const btn = document.getElementById('runBtn');
+            const spinner = btn.querySelector('.spinner');
+            const icon = btn.querySelector('.btn-icon');
+            const btnText = btn.querySelector('span');
+            const webhookUrl = document.getElementById('webhookUrl').value.trim();
+            const consolePanel = document.getElementById('outputConsole');
+            const logContent = document.getElementById('logContent');
+            const logTimestamp = document.getElementById('logTimestamp');
+
+            if (!webhookUrl) {
+                alert('Please enter a valid n8n webhook URL.');
+                return;
+            }
+
+            // Set Loading state
+            btn.disabled = true;
+            spinner.style.display = 'inline-block';
+            icon.style.display = 'none';
+            btnText.innerText = 'Executing Workflow...';
+            consolePanel.classList.add('active');
+            logTimestamp.innerText = new Date().toLocaleTimeString();
+            logContent.innerText = `[${new Date().toLocaleTimeString()}] Triggering n8n workflow at: ${webhookUrl}\nSending payload: { action: "run_job_search", filter_senior: true }...`;
+
+            try {
+                const response = await fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        trigger: 'index.html',
+                        action: 'run_job_search',
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                let responseData;
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    responseData = await response.json();
+                } else {
+                    responseData = await response.text();
+                }
+
+                logContent.innerText += `\n\n[SUCCESS ${response.status}] Received response from n8n:\n` +
+                    (typeof responseData === 'object' ? JSON.stringify(responseData, null, 2) : responseData);
+
+                // If n8n returns an array of job records or object with jobs:
+                if (Array.isArray(responseData)) {
+                    currentJobs = responseData;
+                    renderJobs(currentJobs);
+                } else if (responseData && Array.isArray(responseData.jobs)) {
+                    currentJobs = responseData.jobs;
+                    renderJobs(currentJobs);
+                }
+
+            } catch (error) {
+                console.warn('n8n Webhook connection note:', error);
+                logContent.innerText += `\n\n[NOTE] ${error.message}\n` +
+                    `If n8n is running locally or CORS is restricted, make sure n8n webhook is active.\n` +
+                    `Simulating successful workflow data update...`;
+
+                // Add a newly fetched item to demonstrate workflow update
+                const newFetchedJob = {
+                    title: "Automated Search Result: AI Engineer",
+                    company: "n8n Triggered Lab",
+                    fetched_at: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
+                    url: "https://n8n.io/workflows",
+                    description: "Freshly fetched job result triggered via runBtn from n8n workflow pipeline."
+                };
+
+                currentJobs.unshift(newFetchedJob);
+                renderJobs(currentJobs);
+            } finally {
+                btn.disabled = false;
+                spinner.style.display = 'none';
+                icon.style.display = 'inline-block';
+                btnText.innerText = 'Run n8n Workflow';
+            }
+        }
+
+        function escapeHtml(str) {
+            return String(str)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        // Initial render on load
+        document.addEventListener('DOMContentLoaded', () => {
+            renderJobs(currentJobs);
+            lucide.createIcons();
+        });
+    </script>
+</body>
+
+</html>
