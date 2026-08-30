@@ -43,7 +43,6 @@ If you plan to use Ollama, install and run it separately ([ollama.com](https://o
 | Excel file path | `JOB_SEARCH_FILE_PATH` env var, `--file` CLI flag, or `file_path` in the API request | `ai_jobs.xlsx` |
 | Groq API key | `GROQ_API_KEY` env var (or a `.env` file), `--groq-key` CLI flag, or `groq_api_key` in the API request | — |
 
-**Never send your Groq API key from client-side/browser JavaScript in production** — keep it server-side via the environment variable. Only pass it in the request body for local testing.
 
 ## Usage
 
