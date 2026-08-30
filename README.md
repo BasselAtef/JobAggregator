@@ -13,11 +13,15 @@ It can run as:
   - skip jobs with a missing/`NaN` description,
   - optionally only return jobs relevant to a given **search query**,
   - return a clean JSON array of `title`, `company`, `fetched_at`, `url`, `description`.
+    
+`NOTE: You can modify the output of the LLM according to your own preference.`
+
 - Supports two LLM providers, switchable per request:
   - **Groq** (cloud, via the `groq` SDK or a REST fallback)
   - **Ollama** (local model, via the `ollama` Python client)
 - CORS-enabled so a browser frontend on a different port/origin can call it directly.
 - Optional push of results to an **n8n webhook**.
+
 
 ## Requirements
 
