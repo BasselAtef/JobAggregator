@@ -1,1 +1,4 @@
 .env
+./venv
+./backup
+./ai_jobs.xlsx
