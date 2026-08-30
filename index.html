@@ -94,6 +94,7 @@
             font-weight: 700;
             background: linear-gradient(to right, #ffffff, #9ca3af);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
@@ -203,8 +204,9 @@
             box-shadow: 0 0 12px var(--accent-glow);
         }
 
-        /* runBtn Styling */
-        #runBtn {
+        /* runBtn & setQueryBtn Styling */
+        #runBtn,
+        #setQueryBtn {
             background: linear-gradient(135deg, var(--accent-primary), #4f46e5);
             color: #ffffff;
             border: none;
@@ -221,20 +223,39 @@
             white-space: nowrap;
         }
 
-        #runBtn:hover {
+        #runBtn:hover,
+        #setQueryBtn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
             background: linear-gradient(135deg, #6366f1, #4338ca);
         }
 
-        #runBtn:active {
+        #runBtn:active,
+        #setQueryBtn:active {
             transform: translateY(0);
         }
 
-        #runBtn:disabled {
+        #runBtn:disabled,
+        #setQueryBtn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .provider-btn {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid transparent;
+        }
+
+        .provider-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .provider-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: #ffffff;
+            box-shadow: 0 2px 8px var(--accent-glow);
         }
 
         .spinner {
@@ -556,7 +577,7 @@
                 <div class="input-group">
                     <i data-lucide="link"></i>
                     <input type="text" id="webhookUrl" class="webhook-input"
-                        value="http://localhost:5678/webhook/job-search" placeholder="Enter n8n Webhook URL...">
+                        value="http://localhost:5678/webhook/run-search" placeholder="Enter n8n Webhook URL...">
                 </div>
 
                 <!-- Required runBtn ID -->
@@ -565,6 +586,65 @@
                     <i data-lucide="loader-2" class="spinner"></i>
                     <span>Run n8n Workflow</span>
                 </button>
+            </div>
+
+            <!-- LLM Engine Settings -->
+            <div class="llm-settings-box"
+                style="background: rgba(15, 21, 37, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+                    <div
+                        style="font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
+                        <i data-lucide="cpu" style="color: var(--accent-secondary); width: 18px; height: 18px;"></i>
+                        <span>LLM Inference Engine</span>
+                    </div>
+                    <div
+                        style="display: flex; gap: 0.4rem; background: rgba(0,0,0,0.3); padding: 3px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                        <button type="button" id="providerOllamaBtn" class="provider-btn active"
+                            onclick="setProvider('ollama')"
+                            style="padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s ease;">
+                            Ollama (Local)
+                        </button>
+                        <button type="button" id="providerGroqBtn" class="provider-btn" onclick="setProvider('groq')"
+                            style="padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s ease;">
+                            Groq (Cloud API)
+                        </button>
+                    </div>
+                </div>
+
+                <div class="webhook-controls" style="margin-top: 0.25rem;">
+                    <div class="input-group" style="flex: 1;">
+                        <i data-lucide="box"></i>
+                        <input type="text" id="modelInput" class="webhook-input" value="qwen3.5:4b"
+                            placeholder="Model name (e.g. qwen3.5:4b or openai/gpt-oss-20b)...">
+                    </div>
+
+                    <div class="input-group" id="groqKeyGroup" style="flex: 1.5; display: none;">
+                        <i data-lucide="key"></i>
+                        <input type="password" id="groqApiKeyInput" class="webhook-input"
+                            placeholder="Groq API Key (gsk_...) [or set GROQ_API_KEY env]"
+                            onchange="saveGroqKey(this.value)" oninput="saveGroqKey(this.value)">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Search Query-->
+            <div class="webhook-controls">
+                <div class="input-group">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="searchQuery" class="webhook-input"
+                        placeholder="Insert Custom Query for Job (e.g., 'Python developer', 'Data Science')...">
+                </div>
+                <button id="setQueryBtn" onclick="triggerWorkflow()">
+                    <i data-lucide="search"></i>
+                    <span>Set Query</span>
+                </button>
+            </div>
+            <div id="queryStatus"
+                style="font-size: 0.85rem; color: var(--accent-success); display: none; font-weight: 500;">
+                <i data-lucide="check-circle"
+                    style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
+                <span id="queryStatusText">Search Query Updated</span>
             </div>
         </section>
 
@@ -717,6 +797,45 @@
             lucide.createIcons();
         }
 
+        let activeProvider = 'ollama';
+
+        function setProvider(provider) {
+            activeProvider = provider;
+            localStorage.setItem('selectedProvider', provider);
+
+            const ollamaBtn = document.getElementById('providerOllamaBtn');
+            const groqBtn = document.getElementById('providerGroqBtn');
+            const groqKeyGroup = document.getElementById('groqKeyGroup');
+            const modelInput = document.getElementById('modelInput');
+
+            if (provider === 'groq') {
+                ollamaBtn.classList.remove('active');
+                groqBtn.classList.add('active');
+                groqKeyGroup.style.display = 'block';
+                if (modelInput && (modelInput.value === 'qwen3.5:4b' || !modelInput.value)) {
+                    modelInput.value = 'openai/gpt-oss-20b';
+                }
+            } else {
+                groqBtn.classList.remove('active');
+                ollamaBtn.classList.add('active');
+                groqKeyGroup.style.display = 'none';
+                if (modelInput && (modelInput.value === 'openai/gpt-oss-20b' || !modelInput.value)) {
+                    modelInput.value = 'qwen3.5:4b';
+                }
+            }
+        }
+
+        function saveGroqKey(key) {
+            localStorage.setItem('groqApiKey', key);
+        }
+
+        function getLlmConfig() {
+            const provider = activeProvider;
+            const model = document.getElementById('modelInput') ? document.getElementById('modelInput').value.trim() : '';
+            const groqApiKey = document.getElementById('groqApiKeyInput') ? document.getElementById('groqApiKeyInput').value.trim() : '';
+            return { provider, model, groq_api_key: groqApiKey };
+        }
+
         function filterJobs() {
             const query = document.getElementById('searchInput').value.toLowerCase().trim();
             const filtered = currentJobs.filter(job =>
@@ -727,6 +846,59 @@
             renderJobs(filtered);
         }
 
+        function triggerWorkflow() {
+            const searchQuery = document.getElementById('searchQuery').value.trim() || 'AI jobs';
+            const webhookUrlElement = document.getElementById('webhookUrl');
+            const webhookUrl = webhookUrlElement ? webhookUrlElement.value.trim() : '';
+            const consolePanel = document.getElementById('outputConsole');
+            const logContent = document.getElementById('logContent');
+            const logTimestamp = document.getElementById('logTimestamp');
+            const queryStatus = document.getElementById('queryStatus');
+            const queryStatusText = document.getElementById('queryStatusText');
+            const llmConfig = getLlmConfig();
+
+            // 1. Update UI Status message
+            if (queryStatus && queryStatusText) {
+                queryStatusText.innerText = `Search Query Updated: "${searchQuery}" [Engine: ${llmConfig.provider.toUpperCase()}]`;
+                queryStatus.style.display = 'block';
+            }
+
+            // 2. Output to Console panel
+            if (consolePanel && logContent && logTimestamp) {
+                consolePanel.classList.add('active');
+                logTimestamp.innerText = new Date().toLocaleTimeString();
+                logContent.innerText = `[${new Date().toLocaleTimeString()}] Search Query Updated: "${searchQuery}"\nProvider: ${llmConfig.provider} | Model: ${llmConfig.model}`;
+            }
+
+            // 3. Trigger webhook if URL provided
+            if (webhookUrl) {
+                fetch(webhookUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        trigger: 'index.html',
+                        action: 'run_job_search',
+                        query: searchQuery,
+                        provider: llmConfig.provider,
+                        model: llmConfig.model,
+                        groq_api_key: llmConfig.groq_api_key,
+                        timestamp: new Date().toISOString()
+                    })
+                }).then(res => {
+                    if (logContent) {
+                        logContent.innerText += `\n[SUCCESS] Webhook notified of query update: "${searchQuery}"`;
+                    }
+                }).catch(err => {
+                    if (logContent) {
+                        logContent.innerText += `\n[NOTE] Search Query Updated locally ("${searchQuery}"). Webhook unavailable.`;
+                    }
+                });
+            }
+        }
+
+
         async function runWorkflow() {
             const btn = document.getElementById('runBtn');
             const spinner = btn.querySelector('.spinner');
@@ -736,10 +908,15 @@
             const consolePanel = document.getElementById('outputConsole');
             const logContent = document.getElementById('logContent');
             const logTimestamp = document.getElementById('logTimestamp');
+            const llmConfig = getLlmConfig();
 
             if (!webhookUrl) {
                 alert('Please enter a valid n8n webhook URL.');
                 return;
+            }
+
+            if (llmConfig.provider === 'groq' && !llmConfig.groq_api_key) {
+                logContent.innerText += `\n[WARN] Groq selected but no API Key entered in UI. Will fallback to backend GROQ_API_KEY environment variable if present.`;
             }
 
             // Set Loading state
@@ -749,7 +926,7 @@
             btnText.innerText = 'Executing Workflow...';
             consolePanel.classList.add('active');
             logTimestamp.innerText = new Date().toLocaleTimeString();
-            logContent.innerText = `[${new Date().toLocaleTimeString()}] Triggering n8n workflow at: ${webhookUrl}\nSending payload: { action: "run_job_search", filter_senior: true }...`;
+            logContent.innerText = `[${new Date().toLocaleTimeString()}] Triggering workflow at: ${webhookUrl}\nEngine: ${llmConfig.provider.toUpperCase()} (Model: ${llmConfig.model})\nSending payload...`;
 
             try {
                 const response = await fetch(webhookUrl, {
@@ -760,6 +937,9 @@
                     body: JSON.stringify({
                         trigger: 'index.html',
                         action: 'run_job_search',
+                        provider: llmConfig.provider,
+                        model: llmConfig.model,
+                        groq_api_key: llmConfig.groq_api_key,
                         timestamp: new Date().toISOString()
                     })
                 });
@@ -772,31 +952,49 @@
                     responseData = await response.text();
                 }
 
-                logContent.innerText += `\n\n[SUCCESS ${response.status}] Received response from n8n:\n` +
+                logContent.innerText += `\n\n[SUCCESS ${response.status}] Received response:\n` +
                     (typeof responseData === 'object' ? JSON.stringify(responseData, null, 2) : responseData);
 
-                // If n8n returns an array of job records or object with jobs:
+                // Extract job list from n8n response formats
+                let jobsList = null;
                 if (Array.isArray(responseData)) {
-                    currentJobs = responseData;
-                    renderJobs(currentJobs);
+                    if (responseData.length > 0 && responseData[0].body && Array.isArray(responseData[0].body)) {
+                        jobsList = responseData[0].body;
+                    } else if (responseData.length > 0 && responseData[0].json && (responseData[0].json.title || Array.isArray(responseData[0].json))) {
+                        jobsList = Array.isArray(responseData[0].json) ? responseData[0].json : responseData.map(item => item.json);
+                    } else {
+                        jobsList = responseData;
+                    }
                 } else if (responseData && Array.isArray(responseData.jobs)) {
-                    currentJobs = responseData.jobs;
+                    jobsList = responseData.jobs;
+                } else if (responseData && responseData.raw_response) {
+                    try {
+                        const match = responseData.raw_response.match(/\[.*\]/s);
+                        if (match) jobsList = JSON.parse(match[0]);
+                    } catch (e) { }
+                }
+
+                if (jobsList && Array.isArray(jobsList)) {
+                    currentJobs = jobsList;
                     renderJobs(currentJobs);
+                    logContent.innerText += `\n\n[SUCCESS] Updated UI with ${currentJobs.length} job records from LLM (${llmConfig.provider}).`;
+                } else {
+                    logContent.innerText += `\n\n[WARN] Webhook responded, but response format did not match expected job list structure.`;
                 }
 
             } catch (error) {
-                console.warn('n8n Webhook connection note:', error);
+                console.warn('Webhook connection note:', error);
                 logContent.innerText += `\n\n[NOTE] ${error.message}\n` +
-                    `If n8n is running locally or CORS is restricted, make sure n8n webhook is active.\n` +
+                    `If backend is running locally or CORS is restricted, make sure endpoint is active.\n` +
                     `Simulating successful workflow data update...`;
 
                 // Add a newly fetched item to demonstrate workflow update
                 const newFetchedJob = {
-                    title: "Automated Search Result: AI Engineer",
-                    company: "n8n Triggered Lab",
+                    title: `Automated Search Result (${llmConfig.provider.toUpperCase()})`,
+                    company: "AI Job Search Lab",
                     fetched_at: new Date().toLocaleDateString('en-GB').replace(/\//g, '-'),
-                    url: "https://n8n.io/workflows",
-                    description: "Freshly fetched job result triggered via runBtn from n8n workflow pipeline."
+                    url: "https://groq.com",
+                    description: `Freshly fetched job result processed via ${llmConfig.provider.toUpperCase()} (${llmConfig.model}) engine.`
                 };
 
                 currentJobs.unshift(newFetchedJob);
@@ -820,6 +1018,13 @@
 
         // Initial render on load
         document.addEventListener('DOMContentLoaded', () => {
+            const savedProvider = localStorage.getItem('selectedProvider') || 'ollama';
+            const savedGroqKey = localStorage.getItem('groqApiKey') || '';
+            if (savedGroqKey) {
+                const keyInput = document.getElementById('groqApiKeyInput');
+                if (keyInput) keyInput.value = savedGroqKey;
+            }
+            setProvider(savedProvider);
             renderJobs(currentJobs);
             lucide.createIcons();
         });
