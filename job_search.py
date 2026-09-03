@@ -4,6 +4,7 @@ import os
 import re
 import pandas as pd
 import requests
+from openai import OpenAI
 from flask import Flask, jsonify, request
 
 try:
@@ -21,6 +22,11 @@ try:
     import ollama
 except ImportError:
     ollama = None
+
+try:
+    import pdfplumber
+except ImportError:
+    pdfplumber = None
 
 try:
     from flask_cors import CORS
@@ -94,53 +100,124 @@ def get_groq_completion(prompt, api_key=None, model="openai/gpt-oss-20b", max_to
             max_tokens=max_tokens,
         )
         return response.choices[0].message.content
-    
-    
-    # Fallback HTTP REST request
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {key}",
-        "Content-Type": "application/json"
-    }
-    payload = {
-        "model": target_model,
-        "messages": [
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0,
-        "max_tokens": max_tokens,
 
+def get_gemini_completion(resume_text, job_description, api_key=None, model="gemini-2.5-flash", max_tokens=4096):
+    """Query Google Gemini API to compare a resume against a job description."""
+    if load_dotenv:
+        load_dotenv()
+    key = api_key or os.environ.get("GEMINI_API_KEY")
+    if not key:
+        raise ValueError("Gemini API Key is missing. Set GEMINI_API_KEY environment variable or pass api_key.")
+
+    target_model = model or "gemini-2.5-flash"
+    print(f"Sending request to Gemini API (model: {target_model})...")
+
+    # Method 1: Try OpenAI client using Gemini's OpenAI-compatible endpoint
+    try:
+        client = OpenAI(api_key=key, base_url="https://generativelanguage.googleapis.com/v1beta/openai/")
+        response = client.chat.completions.create(
+            model=target_model,
+            temperature=0,
+            max_tokens=max_tokens,
+            messages=[
+                {"role": "system", "content": "You compare resumes against job descriptions and output structured JSON only. No markdown, no commentary, just the JSON object."},
+                {"role": "user", "content": (
+                    f"Resume:\n{resume_text}\n\n"
+                    f"Job description:\n{job_description}\n\n"
+                    'Return JSON with exact keys: "match_score" (integer 0-100), '
+                    '"pros" (list of strings), "cons" (list of strings), '
+                    '"missing_skills" (list of strings).'
+                )},
+            ],
+        )
+        return response.choices[0].message.content
+    except Exception as e_openai:
+        print(f"OpenAI compatibility endpoint failed: {e_openai}, trying direct REST API fallback...")
+
+    # Method 2: Direct REST API fallback via requests
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{target_model}:generateContent?key={key}"
+    headers = {"Content-Type": "application/json"}
+    prompt = (
+        f"You compare resumes against job descriptions and output structured JSON only. No markdown, no commentary, just the JSON object.\n\n"
+        f"Resume:\n{resume_text}\n\n"
+        f"Job description:\n{job_description}\n\n"
+        'Return JSON with exact keys: "match_score" (integer 0-100), '
+        '"pros" (list of strings), "cons" (list of strings), '
+        '"missing_skills" (list of strings), '
+        '"keep (list of strings) as concise as possible.'
+    )
+    payload = {
+        "contents": [{"parts": [{"text": prompt}]}]
     }
-    
     res = requests.post(url, headers=headers, json=payload, timeout=60)
     if res.status_code != 200:
-        err_msg = f"Groq API Error ({res.status_code}): {res.text}"
-        print(err_msg)
-        raise RuntimeError(err_msg)
-    
-    data = res.json()
-    return data["choices"][0]["message"]["content"]
+        # Fallback model check
+        if res.status_code == 404 and target_model != "gemini-1.5-flash":
+            fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={key}"
+            res = requests.post(fallback_url, headers=headers, json=payload, timeout=60)
 
-def get_completion(prompt, provider="groq", model=None, groq_api_key=None, max_tokens=4096):
-    """Router for LLM completion providers (groq / ollama)."""
+        if res.status_code != 200:
+            raise RuntimeError(f"Gemini API request failed ({res.status_code}): {res.text}")
+
+    res_json = res.json()
+    candidates = res_json.get("candidates", [])
+    if not candidates:
+        raise RuntimeError(f"Gemini API response empty: {res.text}")
+    parts = candidates[0].get("content", {}).get("parts", [])
+    if not parts:
+        raise RuntimeError(f"Gemini API response missing content parts: {res.text}")
+    return parts[0].get("text", "")
+
+def get_completion(prompt, provider="groq", model=None,
+                   groq_api_key=None, max_tokens=4096):
+
     provider_clean = (provider or "groq").lower()
+
     if provider_clean == "groq":
         model_name = model or "openai/gpt-oss-20b"
-        return get_groq_completion(prompt, api_key=groq_api_key, model=model_name, max_tokens=max_tokens)
-    else:
+        return get_groq_completion(
+            prompt,
+            api_key=groq_api_key,
+            model=model_name,
+            max_tokens=max_tokens
+        )
+
+    elif provider_clean == "ollama":
         model_name = model or "qwen3.5:4b"
-        return get_ollama_completion(prompt, model=model_name, max_tokens=max_tokens)
+        return get_ollama_completion(
+            prompt,
+            model=model_name,
+            max_tokens=max_tokens
+        )
+
+    else:
+        raise ValueError(f"Unsupported provider: {provider}")
+
+        
 
 def _extract_json_array(raw_response):
     """Strip markdown code fences, then pull out the JSON array."""
     cleaned = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw_response.strip(), flags=re.MULTILINE)
     match = re.search(r'\[.*\]', cleaned, re.DOTALL)
+
     if not match:
         return None, "No JSON array found in response (it may have been cut off before the closing ']')."
     try:
         return json.loads(match.group(0)), None
     except json.JSONDecodeError as e:
         return None, f"Response looks truncated or malformed JSON: {e}"
+
+def _extract_json_object(raw_response):
+    """Strip markdown code fences, then pull out a JSON object (for single-result responses like resume-fit)."""
+    cleaned = re.sub(r'^```(?:json)?\s*|\s*```$', '', raw_response.strip(), flags=re.MULTILINE)
+    match = re.search(r'\{.*\}', cleaned, re.DOTALL)
+    if not match:
+        return None, "No JSON object found in response (it may have been cut off before the closing '}')."
+    try:
+        return json.loads(match.group(0)), None
+    except json.JSONDecodeError as e:
+        return None, f"Response looks truncated or malformed JSON: {e}"
+
 
 def run_job_search(file_path=DEFAULT_FILE_PATH, provider="groq", model=None, groq_api_key=None, max_tokens=4096, query=None):
     records_text = load_data(file_path)
@@ -220,13 +297,104 @@ def api_run_search():
     return jsonify(results)
 
 
+def extract_text_from_pdf(file_stream):
+    """Extract plain text from an uploaded PDF file stream."""
+    if pdfplumber is None:
+        raise ImportError("pdfplumber is not installed. Run: pip install pdfplumber")
+
+    text_parts = []
+    with pdfplumber.open(file_stream) as pdf:
+        for page in pdf.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text_parts.append(page_text)
+
+    text = "\n".join(text_parts).strip()
+    if not text:
+        raise ValueError(
+            "No extractable text found in the PDF. It may be a scanned image "
+            "rather than a text-based PDF, which needs OCR instead of plain extraction."
+        )
+    return text
+
+
+# In-memory store for the resume text. Fine for a single-user portfolio demo;
+# swap for a real session/DB if this ever needs to support multiple users.
+_resume_store = {"resume_text": None}
+
+
+@app.route('/upload-resume', methods=['POST'])
+def api_upload_resume():
+    """
+    Accepts a resume PDF file upload (multipart/form-data, field name 'resume')
+    extracts its text, and stores it for later /analyze-fit calls.
+    """
+    if 'resume' not in request.files:
+        return jsonify({"error": "No file uploaded. Expected multipart field named 'resume'."}), 400
+
+    file = request.files['resume']
+    if file.filename == '':
+        return jsonify({"error": "No file selected."}), 400
+
+    if not file.filename.lower().endswith('.pdf'):
+        return jsonify({"error": "Only PDF files are supported right now."}), 400
+
+    try:
+        resume_text = extract_text_from_pdf(file.stream)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+    _resume_store["resume_text"] = resume_text
+    return jsonify({"status": "ok", "length": len(resume_text), "preview": resume_text[:200]})
+
+
+@app.route('/analyze-fit', methods=['POST'])
+def api_analyze_fit():
+    """
+    Compares the stored resume against a job description using Gemini API.
+    Expects JSON body: {"job_description": "..."} (title/company optional, for context)
+    """
+    if not request.is_json:
+        return jsonify({"error": "Expected JSON body with a 'job_description' field."}), 400
+
+    resume_text = _resume_store.get("resume_text")
+    if not resume_text:
+        return jsonify({"error": "No resume uploaded yet. POST to /upload-resume first."}), 400
+
+    job_description = request.json.get("job_description")
+    if not job_description or not job_description.strip():
+        return jsonify({"error": "job_description is empty."}), 400
+
+    model = request.json.get("model")
+    gemini_key = request.json.get("gemini_api_key") or request.headers.get("X-Gemini-Api-Key")
+    max_tokens = request.json.get("max_tokens") or 4096
+
+    try:
+        raw_response = get_gemini_completion(
+            resume_text=resume_text,
+            job_description=job_description,
+            api_key=gemini_key,
+            model=model,
+            max_tokens=max_tokens,
+        )
+    except Exception as e:
+        print(f"Error during Gemini completion: {e}")
+        return jsonify({"error": str(e)}), 500
+
+    parsed, err = _extract_json_object(raw_response)
+    if parsed is not None:
+        return jsonify(parsed)
+
+    return jsonify({"error": err, "raw_response": raw_response}), 502
+
+
 @app.route('/providers', methods=['GET'])
 def api_providers():
     """Lets a frontend populate a provider dropdown dynamically."""
     return jsonify({
         "providers": [
-            {"id": "groq", "label": "Groq", "default_model": "openai/gpt-oss-20b"},
             {"id": "ollama", "label": "Ollama (local)", "default_model": "qwen3.5:4b"},
+            {"id": "groq", "label": "Groq", "default_model": "openai/gpt-oss-20b"},
         ]
     })
 

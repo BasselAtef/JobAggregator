@@ -13,24 +13,31 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --bg-dark: #0b0f19;
-            --bg-card: rgba(22, 28, 45, 0.7);
-            --bg-card-hover: rgba(30, 39, 63, 0.85);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --border-highlight: rgba(99, 102, 241, 0.3);
-            --accent-primary: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.4);
-            --accent-secondary: #06b6d4;
-            --accent-success: #10b981;
-            --accent-warning: #f59e0b;
-            --accent-danger: #ef4444;
-            --text-primary: #f3f4f6;
-            --text-secondary: #9ca3af;
-            --text-muted: #6b7280;
-            --radius-lg: 16px;
-            --radius-md: 10px;
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-subtle: #f1f5f9;
+            --bg-hover: #f8fafc;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --border-focus: #2563eb;
+            --accent-primary: #0f172a;
+            --accent-primary-hover: #1e293b;
+            --accent-blue: #2563eb;
+            --accent-blue-bg: #eff6ff;
+            --accent-blue-text: #1d4ed8;
+            --accent-success: #16a34a;
+            --accent-success-bg: #f0fdf4;
+            --accent-warning: #d97706;
+            --accent-danger: #dc2626;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --radius-lg: 12px;
+            --radius-md: 8px;
             --radius-sm: 6px;
-            --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-card: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
         }
 
         * {
@@ -40,21 +47,18 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-page);
             color: var(--text-primary);
             min-height: 100vh;
-            background-image:
-                radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 85% 75%, rgba(6, 182, 212, 0.12) 0%, transparent 40%);
-            background-attachment: fixed;
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.5rem;
             display: flex;
             justify-content: center;
+            line-height: 1.5;
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1100px;
             width: 100%;
             display: flex;
             flex-direction: column;
@@ -75,27 +79,25 @@
         .brand-title {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            gap: 0.85rem;
         }
 
         .brand-icon {
-            width: 44px;
-            height: 44px;
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            width: 42px;
+            height: 42px;
+            background: #0f172a;
+            color: #ffffff;
             border-radius: var(--radius-md);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 20px var(--accent-glow);
         }
 
         .brand-title h1 {
-            font-size: 1.5rem;
+            font-size: 1.35rem;
             font-weight: 700;
-            background: linear-gradient(to right, #ffffff, #9ca3af);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
         }
 
         .brand-title p {
@@ -107,31 +109,30 @@
             display: inline-flex;
             align-items: center;
             gap: 0.5rem;
-            padding: 0.4rem 0.8rem;
-            background: rgba(255, 255, 255, 0.04);
+            padding: 0.35rem 0.75rem;
+            background: #ffffff;
             border: 1px solid var(--border-color);
-            border-radius: 20px;
+            border-radius: 9999px;
             font-size: 0.8rem;
+            font-weight: 500;
             color: var(--text-secondary);
+            box-shadow: var(--shadow-sm);
         }
 
         .status-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background-color: var(--accent-success);
-            box-shadow: 0 0 10px var(--accent-success);
         }
 
-        /* Control Panel / n8n Trigger Card */
+        /* Control Panel Card */
         .control-card {
             background: var(--bg-card);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
-            padding: 1.75rem;
-            box-shadow: var(--shadow-glass);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-card);
             display: flex;
             flex-direction: column;
             gap: 1.25rem;
@@ -148,17 +149,18 @@
         .control-title {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.6rem;
             font-weight: 600;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
+            color: var(--text-primary);
         }
 
         .n8n-badge {
-            background: linear-gradient(135deg, #ff6d5a, #ea4b71);
-            color: #fff;
-            padding: 0.2rem 0.6rem;
+            background: #ea580c;
+            color: #ffffff;
+            padding: 0.15rem 0.5rem;
             border-radius: 4px;
-            font-size: 0.75rem;
+            font-size: 0.72rem;
             font-weight: 700;
             letter-spacing: 0.5px;
         }
@@ -172,67 +174,75 @@
 
         .input-group {
             flex: 1;
-            min-width: 280px;
+            min-width: 260px;
             position: relative;
+            display: flex;
+            align-items: center;
         }
 
         .input-group i {
             position: absolute;
-            left: 1rem;
+            left: 0.9rem;
             top: 50%;
             transform: translateY(-50%);
             color: var(--text-muted);
-            width: 18px;
-            height: 18px;
+            width: 17px;
+            height: 17px;
+            pointer-events: none;
         }
 
         .webhook-input {
             width: 100%;
-            background: rgba(15, 21, 37, 0.8);
+            background: #ffffff;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
-            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            padding: 0.65rem 1rem 0.65rem 2.6rem;
             color: var(--text-primary);
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.85rem;
-            transition: all 0.2s ease;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }
 
         .webhook-input:focus {
             outline: none;
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 12px var(--accent-glow);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
-        /* runBtn & setQueryBtn Styling */
+        .webhook-input::placeholder {
+            color: var(--text-muted);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* Action Buttons Styling */
         #runBtn,
-        #setQueryBtn {
-            background: linear-gradient(135deg, var(--accent-primary), #4f46e5);
+        #setQueryBtn,
+        .primary-action-btn {
+            background: var(--accent-primary);
             color: #ffffff;
-            border: none;
+            border: 1px solid transparent;
             border-radius: var(--radius-md);
-            padding: 0.75rem 1.75rem;
-            font-size: 0.95rem;
+            padding: 0.65rem 1.4rem;
+            font-size: 0.875rem;
             font-weight: 600;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 0.6rem;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 15px var(--accent-glow);
+            gap: 0.5rem;
+            transition: all 0.15s ease;
+            box-shadow: var(--shadow-sm);
             white-space: nowrap;
         }
 
         #runBtn:hover,
-        #setQueryBtn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.6);
-            background: linear-gradient(135deg, #6366f1, #4338ca);
+        #setQueryBtn:hover,
+        .primary-action-btn:hover {
+            background: var(--accent-primary-hover);
         }
 
         #runBtn:active,
         #setQueryBtn:active {
-            transform: translateY(0);
+            transform: translateY(1px);
         }
 
         #runBtn:disabled,
@@ -242,10 +252,36 @@
             transform: none;
         }
 
+        /* LLM Box & Provider Toggle */
+        .llm-settings-box {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .provider-toggle-group {
+            display: flex;
+            gap: 3px;
+            background: #ffffff;
+            padding: 3px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+        }
+
         .provider-btn {
             background: transparent;
             color: var(--text-secondary);
-            border: 1px solid transparent;
+            border: none;
+            padding: 0.35rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.15s ease;
         }
 
         .provider-btn:hover {
@@ -253,23 +289,53 @@
         }
 
         .provider-btn.active {
-            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-            color: #ffffff;
-            box-shadow: 0 2px 8px var(--accent-glow);
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
         }
 
-        .spinner {
-            animation: spin 1s linear infinite;
-            display: none;
+        .engine-badge {
+            background: var(--accent-blue-bg);
+            color: var(--accent-blue-text);
+            border: 1px solid #dbeafe;
+            padding: 0.15rem 0.55rem;
+            border-radius: 4px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
         }
 
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
+        /* Resume Container */
+        .resume-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            padding-top: 0.25rem;
         }
 
-        /* Filter and Stats bar */
+        .secondary-btn {
+            background: #ffffff;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.65rem 1.2rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+
+        .secondary-btn:hover {
+            background: var(--bg-subtle);
+            border-color: var(--border-hover);
+        }
+
+        /* Toolbar */
         .toolbar {
             display: flex;
             justify-content: space-between;
@@ -296,39 +362,42 @@
 
         .search-input {
             width: 100%;
-            background: rgba(22, 28, 45, 0.5);
+            background: #ffffff;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-md);
             padding: 0.55rem 0.85rem 0.55rem 2.4rem;
             color: var(--text-primary);
             font-size: 0.85rem;
+            transition: border-color 0.15s ease;
         }
 
         .search-input:focus {
             outline: none;
-            border-color: var(--accent-secondary);
+            border-color: var(--accent-blue);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
         }
 
         .records-counter {
             font-size: 0.85rem;
             color: var(--text-secondary);
+            font-weight: 500;
         }
 
         /* Label Badges Bar */
         .labels-preview {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.4rem;
             flex-wrap: wrap;
             font-size: 0.8rem;
             color: var(--text-muted);
         }
 
         .field-tag {
-            background: rgba(99, 102, 241, 0.1);
-            border: 1px solid rgba(99, 102, 241, 0.25);
-            color: #a5b4fc;
-            padding: 0.2rem 0.5rem;
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.15rem 0.45rem;
             border-radius: var(--radius-sm);
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.75rem;
@@ -337,46 +406,26 @@
         /* Job Cards Grid */
         .jobs-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 1.25rem;
         }
 
         .job-card {
             background: var(--bg-card);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-lg);
             padding: 1.25rem;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .job-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: linear-gradient(to bottom, var(--accent-primary), var(--accent-secondary));
-            opacity: 0;
-            transition: opacity 0.25s ease;
+            gap: 0.9rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+            box-shadow: var(--shadow-card);
         }
 
         .job-card:hover {
-            transform: translateY(-4px);
-            background: var(--bg-card-hover);
-            border-color: var(--border-highlight);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
-        }
-
-        .job-card:hover::before {
-            opacity: 1;
+            transform: translateY(-2px);
+            border-color: var(--border-hover);
+            box-shadow: var(--shadow-hover);
         }
 
         .card-header {
@@ -389,7 +438,7 @@
         .field-group {
             display: flex;
             flex-direction: column;
-            gap: 0.2rem;
+            gap: 0.25rem;
         }
 
         .label-badge {
@@ -397,22 +446,22 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-weight: 700;
-            color: var(--accent-secondary);
+            color: var(--text-muted);
             display: flex;
             align-items: center;
             gap: 0.3rem;
         }
 
         .job-title {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             font-weight: 600;
             color: var(--text-primary);
             line-height: 1.35;
         }
 
         .company-name {
-            font-size: 0.9rem;
-            color: #d1d5db;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
             font-weight: 500;
             display: flex;
             align-items: center;
@@ -421,12 +470,12 @@
 
         .fetched-at {
             font-size: 0.75rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
-            background: rgba(255, 255, 255, 0.03);
-            padding: 0.25rem 0.5rem;
+            background: var(--bg-subtle);
+            padding: 0.2rem 0.5rem;
             border-radius: var(--radius-sm);
-            border: 1px solid rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
             display: inline-flex;
             align-items: center;
             gap: 0.3rem;
@@ -437,50 +486,115 @@
             font-size: 0.85rem;
             color: var(--text-secondary);
             line-height: 1.5;
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--bg-page);
             padding: 0.75rem;
             border-radius: var(--radius-md);
-            border: 1px solid rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
             flex: 1;
         }
 
         .card-footer {
             display: flex;
-            justify-content: flex-end;
-            align-items: center;
+            flex-direction: column;
+            gap: 0.75rem;
             padding-top: 0.5rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            border-top: 1px solid var(--border-color);
         }
 
         .job-url {
-            color: var(--accent-primary);
+            color: var(--accent-blue);
             text-decoration: none;
             font-size: 0.82rem;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
-            padding: 0.4rem 0.8rem;
+            gap: 0.35rem;
+            padding: 0.35rem 0.7rem;
             border-radius: var(--radius-sm);
-            background: rgba(99, 102, 241, 0.1);
-            transition: all 0.2s ease;
+            background: var(--accent-blue-bg);
+            border: 1px solid #dbeafe;
+            transition: all 0.15s ease;
         }
 
         .job-url:hover {
-            background: rgba(99, 102, 241, 0.25);
-            color: #ffffff;
-            transform: translateX(2px);
+            background: #dbeafe;
+            color: #1e40af;
         }
 
-        /* Output / Response Panel */
-        .output-panel {
-            background: rgba(11, 15, 25, 0.9);
+        .fit-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            width: 100%;
+            padding: 0.5rem 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: #ffffff;
             border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .fit-btn:hover:not(:disabled) {
+            background: var(--bg-subtle);
+            color: var(--text-primary);
+            border-color: var(--border-hover);
+        }
+
+        .fit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .fit-result {
+            background: var(--bg-subtle);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 0.85rem;
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+        }
+
+        .fit-score {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .fit-section {
+            margin-top: 0.5rem;
+        }
+
+        .fit-section strong {
+            color: var(--text-primary);
+            font-size: 0.8rem;
+        }
+
+        .fit-section ul {
+            margin: 0.3rem 0 0 1.1rem;
+            padding: 0;
+        }
+
+        .fit-section li {
+            margin-bottom: 0.2rem;
+        }
+
+        .fit-error {
+            color: var(--accent-danger);
+        }
+
+        /* Console Output Panel */
+        .output-panel {
+            background: #0f172a;
+            border: 1px solid #1e293b;
             border-radius: var(--radius-lg);
             padding: 1.25rem;
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.8rem;
-            color: #a7f3d0;
+            color: #cbd5e1;
             max-height: 220px;
             overflow-y: auto;
             display: none;
@@ -495,15 +609,15 @@
             justify-content: space-between;
             margin-bottom: 0.5rem;
             padding-bottom: 0.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--text-muted);
+            border-bottom: 1px solid #334155;
+            color: #94a3b8;
         }
 
         /* Empty state */
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 3rem;
+            padding: 3.5rem 1.5rem;
             background: var(--bg-card);
             border: 1px dashed var(--border-color);
             border-radius: var(--radius-lg);
@@ -511,10 +625,27 @@
         }
 
         .empty-state i {
-            width: 48px;
-            height: 48px;
+            width: 40px;
+            height: 40px;
             color: var(--text-muted);
-            margin-bottom: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+
+        .spin-icon {
+            width: 14px;
+            height: 14px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            100% {
+                transform: rotate(360deg);
+            }
         }
 
         @media (max-width: 640px) {
@@ -544,8 +675,8 @@
                     <i data-lucide="briefcase"></i>
                 </div>
                 <div>
-                    <h1>Job Search & AI Automation</h1>
-                    <p>n8n Workflow Execution & Batch Processor</p>
+                    <h1>Job Search Aggregator & Resume Checker</h1>
+                    <p>Compare your resume with job descriptions and get AI-powered fit analysis.</p>
                 </div>
             </div>
 
@@ -559,7 +690,7 @@
         <section class="control-card">
             <div class="control-card-header">
                 <div class="control-title">
-                    <i data-lucide="zap" style="color: var(--accent-warning);"></i>
+                    <i data-lucide="zap" style="color: var(--accent-warning); width: 18px; height: 18px;"></i>
                     <span>Execute Workflow</span>
                     <span class="n8n-badge">n8n</span>
                 </div>
@@ -589,24 +720,21 @@
             </div>
 
             <!-- LLM Engine Settings -->
-            <div class="llm-settings-box"
-                style="background: rgba(15, 21, 37, 0.6); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <div class="llm-settings-box">
                 <div
                     style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
                     <div
                         style="font-size: 0.88rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem; color: var(--text-primary);">
-                        <i data-lucide="cpu" style="color: var(--accent-secondary); width: 18px; height: 18px;"></i>
+                        <i data-lucide="cpu" style="color: var(--text-secondary); width: 18px; height: 18px;"></i>
                         <span>LLM Inference Engine</span>
+                        <span id="activeEngineBadge" class="engine-badge">OLLAMA (LOCAL)</span>
                     </div>
-                    <div
-                        style="display: flex; gap: 0.4rem; background: rgba(0,0,0,0.3); padding: 3px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+                    <div class="provider-toggle-group">
                         <button type="button" id="providerOllamaBtn" class="provider-btn active"
-                            onclick="setProvider('ollama')"
-                            style="padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s ease;">
+                            onclick="setProvider('ollama')">
                             Ollama (Local)
                         </button>
-                        <button type="button" id="providerGroqBtn" class="provider-btn" onclick="setProvider('groq')"
-                            style="padding: 0.35rem 0.8rem; font-size: 0.8rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; transition: all 0.2s ease;">
+                        <button type="button" id="providerGroqBtn" class="provider-btn" onclick="setProvider('groq')">
                             Groq (Cloud API)
                         </button>
                     </div>
@@ -646,6 +774,22 @@
                     style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px;"></i>
                 <span id="queryStatusText">Search Query Updated</span>
             </div>
+
+            <!-- Resume upload -->
+            <div class="resume-container">
+                <div class="input-group" style="flex: 1; min-width: 240px;">
+                    <i data-lucide="file-text"></i>
+                    <input type="file" id="resume-file" accept=".pdf" class="webhook-input"
+                        style="padding-top: 0.45rem; padding-bottom: 0.45rem;">
+                </div>
+                <button type="button" class="secondary-btn" onclick="uploadResume()">
+                    <i data-lucide="upload" style="width: 15px; height: 15px;"></i>
+                    <span>Save Resume</span>
+                </button>
+                <span id="resume-status"
+                    style="font-size: 0.85rem; color: var(--accent-success); font-weight: 500;"></span>
+            </div>
+
         </section>
 
         <!-- Response Console Log (Hidden by default) -->
@@ -717,6 +861,7 @@
         ];
 
         let currentJobs = [...initialJobs];
+        let renderedJobs = [];
 
         function renderJobs(jobs) {
             const container = document.getElementById('jobsGrid');
@@ -736,7 +881,9 @@
                 return;
             }
 
-            container.innerHTML = jobs.map(job => `
+            renderedJobs = jobs;
+
+            container.innerHTML = jobs.map((job, index) => `
                 <article class="job-card">
                     <div class="card-header">
                         <div class="field-group">
@@ -790,6 +937,11 @@
                                 <i data-lucide="external-link" style="width: 14px; height: 14px;"></i>
                             </a>
                         </div>
+                        <button type="button" class="fit-btn" onclick="checkFit(${index}, this)">
+                            <i data-lucide="target" style="width: 14px; height: 14px;"></i>
+                            <span>Check Resume Fit</span>
+                        </button>
+                        <div class="fit-result" id="fit-result-${index}" style="display: none;"></div>
                     </div>
                 </article>
             `).join('');
@@ -807,11 +959,18 @@
             const groqBtn = document.getElementById('providerGroqBtn');
             const groqKeyGroup = document.getElementById('groqKeyGroup');
             const modelInput = document.getElementById('modelInput');
+            const badge = document.getElementById('activeEngineBadge');
 
             if (provider === 'groq') {
                 ollamaBtn.classList.remove('active');
                 groqBtn.classList.add('active');
-                groqKeyGroup.style.display = 'block';
+                groqKeyGroup.style.display = 'flex';
+                if (badge) {
+                    badge.innerText = 'GROQ (CLOUD)';
+                    badge.style.background = '#fff7ed';
+                    badge.style.color = '#c2410c';
+                    badge.style.border = '1px solid #ffedd5';
+                }
                 if (modelInput && (modelInput.value === 'qwen3.5:4b' || !modelInput.value)) {
                     modelInput.value = 'openai/gpt-oss-20b';
                 }
@@ -819,6 +978,12 @@
                 groqBtn.classList.remove('active');
                 ollamaBtn.classList.add('active');
                 groqKeyGroup.style.display = 'none';
+                if (badge) {
+                    badge.innerText = 'OLLAMA (LOCAL)';
+                    badge.style.background = '#eff6ff';
+                    badge.style.color = '#1d4ed8';
+                    badge.style.border = '1px solid #dbeafe';
+                }
                 if (modelInput && (modelInput.value === 'openai/gpt-oss-20b' || !modelInput.value)) {
                     modelInput.value = 'qwen3.5:4b';
                 }
@@ -848,8 +1013,6 @@
 
         function triggerWorkflow() {
             const searchQuery = document.getElementById('searchQuery').value.trim() || 'AI jobs';
-            const webhookUrlElement = document.getElementById('webhookUrl');
-            const webhookUrl = webhookUrlElement ? webhookUrlElement.value.trim() : '';
             const consolePanel = document.getElementById('outputConsole');
             const logContent = document.getElementById('logContent');
             const logTimestamp = document.getElementById('logTimestamp');
@@ -867,40 +1030,13 @@
             if (consolePanel && logContent && logTimestamp) {
                 consolePanel.classList.add('active');
                 logTimestamp.innerText = new Date().toLocaleTimeString();
-                logContent.innerText = `[${new Date().toLocaleTimeString()}] Search Query Updated: "${searchQuery}"\nProvider: ${llmConfig.provider} | Model: ${llmConfig.model}`;
-            }
-
-            // 3. Trigger webhook if URL provided
-            if (webhookUrl) {
-                fetch(webhookUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        trigger: 'index.html',
-                        action: 'run_job_search',
-                        query: searchQuery,
-                        provider: llmConfig.provider,
-                        model: llmConfig.model,
-                        groq_api_key: llmConfig.groq_api_key,
-                        timestamp: new Date().toISOString()
-                    })
-                }).then(res => {
-                    if (logContent) {
-                        logContent.innerText += `\n[SUCCESS] Webhook notified of query update: "${searchQuery}"`;
-                    }
-                }).catch(err => {
-                    if (logContent) {
-                        logContent.innerText += `\n[NOTE] Search Query Updated locally ("${searchQuery}"). Webhook unavailable.`;
-                    }
-                });
+                logContent.innerText = `[${new Date().toLocaleTimeString()}] Search Query Updated: "${searchQuery}"\nProvider: ${llmConfig.provider} | Model: ${llmConfig.model}\nReady to run workflow.`;
             }
         }
 
-
         async function runWorkflow() {
             const btn = document.getElementById('runBtn');
+            const searchQuery = document.getElementById('searchQuery').value.trim() || 'AI jobs';
             const spinner = btn.querySelector('.spinner');
             const icon = btn.querySelector('.btn-icon');
             const btnText = btn.querySelector('span');
@@ -916,7 +1052,9 @@
             }
 
             if (llmConfig.provider === 'groq' && !llmConfig.groq_api_key) {
-                logContent.innerText += `\n[WARN] Groq selected but no API Key entered in UI. Will fallback to backend GROQ_API_KEY environment variable if present.`;
+                if (logContent) {
+                    logContent.innerText += `\n[WARN] Groq selected but no API Key entered in UI. Will fallback to backend GROQ_API_KEY environment variable if present.`;
+                }
             }
 
             // Set Loading state
@@ -937,6 +1075,7 @@
                     body: JSON.stringify({
                         trigger: 'index.html',
                         action: 'run_job_search',
+                        query: searchQuery,
                         provider: llmConfig.provider,
                         model: llmConfig.model,
                         groq_api_key: llmConfig.groq_api_key,
@@ -983,10 +1122,8 @@
                 }
 
             } catch (error) {
-                console.warn('Webhook connection note:', error);
-                logContent.innerText += `\n\n[NOTE] ${error.message}\n` +
-                    `If backend is running locally or CORS is restricted, make sure endpoint is active.\n` +
-                    `Simulating successful workflow data update...`;
+                console.error('Webhook fetch failed:', error);
+                logContent.innerText += `\n\n[ERROR] ${error.message}`;
 
                 // Add a newly fetched item to demonstrate workflow update
                 const newFetchedJob = {
@@ -1005,6 +1142,68 @@
                 icon.style.display = 'inline-block';
                 btnText.innerText = 'Run n8n Workflow';
             }
+        }
+
+        async function uploadResume() {
+            const fileInput = document.getElementById('resume-file');
+            if (!fileInput.files.length) {
+                document.getElementById('resume-status').innerText = 'Please choose a PDF first.';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('resume', fileInput.files[0]);
+
+            const res = await fetch('http://localhost:5000/upload-resume', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            document.getElementById('resume-status').innerText =
+                res.ok ? `Resume saved (${data.length} chars extracted)` : `Error: ${data.error}`;
+        }
+
+        async function analyzeFit(jobDescription, targetElementId, buttonEl) {
+            const el = document.getElementById(targetElementId);
+            el.style.display = 'block';
+            el.innerHTML = '<span class="fit-loading"><i data-lucide="loader-2" class="spin-icon"></i> Analyzing fit...</span>';
+            lucide.createIcons();
+            if (buttonEl) buttonEl.disabled = true;
+
+            try {
+                const res = await fetch('http://localhost:5000/analyze-fit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_description: jobDescription })
+                });
+                const data = await res.json();
+
+                if (!res.ok) {
+                    el.innerHTML = `<span class="fit-error">Error: ${escapeHtml(data.error || 'Unknown error')}</span>`;
+                    return;
+                }
+
+                const scoreColor = data.match_score >= 70 ? 'var(--accent-success)'
+                    : data.match_score >= 40 ? 'var(--accent-warning)'
+                        : 'var(--accent-danger)';
+
+                el.innerHTML = `
+                <div class="fit-score" style="color: ${scoreColor};">Match score: ${escapeHtml(String(data.match_score))}%</div>
+                <div class="fit-section"><strong>Pros</strong><ul>${(data.pros || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}</ul></div>
+                <div class="fit-section"><strong>Cons</strong><ul>${(data.cons || []).map(c => `<li>${escapeHtml(c)}</li>`).join('')}</ul></div>
+                <div class="fit-section"><strong>Missing skills</strong><ul>${(data.missing_skills || []).map(s => `<li>${escapeHtml(s)}</li>`).join('')}</ul></div>
+            `;
+            } catch (err) {
+                el.innerHTML = `<span class="fit-error">Could not reach analysis server. Is Flask running on port 5000?</span>`;
+            } finally {
+                if (buttonEl) buttonEl.disabled = false;
+            }
+        }
+
+        function checkFit(index, buttonEl) {
+            const job = renderedJobs[index];
+            if (!job) return;
+            analyzeFit(job.description || '', `fit-result-${index}`, buttonEl);
         }
 
         function escapeHtml(str) {
