@@ -1,4 +1,4 @@
 .env
 ./venv
 ./backup
-./ai_jobs.xlsx
+./__pycache__
